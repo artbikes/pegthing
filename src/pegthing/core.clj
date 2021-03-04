@@ -15,22 +15,30 @@
        (cons new-sum (lazy-seq (tri* new-sum (inc n)))))))
 
 (def tri (tri*))
+(take 5 tri)
 
 (defn triangular?
   "Is the number triangular? e.g. 1, 3, 6, 10, 15, etc"
   [n]
   (= n (last (take-while #(>= n %) tri))))
 
+(triangular? 55)
+
 (defn row-tri
   "The triangular number at the end of row n"
   [n]
   (last (take n tri)))
+
+(row-tri 5)
 
 (defn row-num
   "Returns row number the position belongs to: pos 1 in row 1,
   positions 2 and 3 in row 2, etc"
   [pos]
   (inc (count (take-while #(> pos %) tri))))
+(row-num 1)
+(row-num 11)
+
 
 (defn in-bounds?
   "Is every position less than or equal the max position?"
@@ -45,6 +53,9 @@
             board
             [[pos destination] [destination pos]])
     board))
+(connect {} 15 1 2 4)
+(assoc-in {} [:cookie :monster :vocals] "Finntroll")
+(get-in {:cookie {:monster {:vocals "Finntroll"}}} [:cookie :monster])
 
 (defn connect-right
   [board max-pos pos]
@@ -61,12 +72,16 @@
         destination (+ 1 row neighbor)]
     (connect board max-pos pos neighbor destination)))
 
+(connect-down-left {} 15 1)
+
 (defn connect-down-right
   [board max-pos pos]
   (let [row (row-num pos)
         neighbor (+ 1 row pos)
         destination (+ 2 row neighbor)]
     (connect board max-pos pos neighbor destination)))
+
+(connect-down-right {} 15 3)
 
 (defn add-pos
   "Pegs the position and performs connections"
@@ -76,6 +91,8 @@
             pegged-board
             [connect-right connect-down-left connect-down-right])))
 
+(add-pos {} 15 1)
+
 (defn new-board
   [rows]
   (let [initial-board {:rows rows}
@@ -83,6 +100,11 @@
     (reduce (fn [board pos] (add-pos board max-pos pos))
             initial-board
             (range 1 (inc max-pos)))))
+
+(new-board 5)
+
+(range 1 (inc 15))
+
 ;;;;
 ;; Move pegs
 ;;;;
@@ -101,11 +123,19 @@
                        (pegged? board jumped)))
                 (get-in board [pos :connections]))))
 
+(def my-board (assoc-in (new-board 5) [4 :pegged] false))
+(valid-moves my-board 1)
+
+
 (defn valid-move?
   "Return jumped position if the move from p1 to p2 is valid, nil
   otherwise"
   [board p1 p2]
   (get (valid-moves board p1) p2))
+
+(valid-move? my-board 8 4)
+(valid-move? my-board 1 4)
+(map first (filter #(get (second %) :pegged) my-board))
 
 (defn remove-peg
   "Take the peg at given position out of the board"
@@ -141,6 +171,7 @@
 (def alpha-end 123)
 (def letters (map (comp str char) (range alpha-start alpha-end)))
 (def pos-chars 3)
+(- alpha-end alpha-start)
 
 (def ansi-styles
   {:red   "[31m"
@@ -165,6 +196,8 @@
          (colorize "0" :blue)
          (colorize "-" :red))))
 
+(render-pos my-board 5)
+
 (defn row-positions
   "Return all positions in the given row"
   [row-num]
@@ -182,11 +215,13 @@
   (str (row-padding row-num (:rows board))
        (clojure.string/join " " (map (partial render-pos board) (row-positions row-num)))))
 
+(render-row my-board 4)
+
 (defn print-board
   [board]
   (doseq [row-num (range 1 (inc (:rows board)))]
     (println (render-row board row-num))))
-
+(print-board my-board)
 ;;;;
 ;; Interaction
 ;;;;
@@ -194,6 +229,8 @@
   "Converts a letter string to the corresponding position number"
   [letter]
   (inc (- (int (first letter)) alpha-start)))
+
+(letter->pos "h")
 
 (defn get-input
   "Waits for user to enter text and hit enter, then cleans the input"
@@ -209,6 +246,9 @@
   character"
   [string]
   (re-seq #"[a-zA-Z]" string))
+
+(characters-as-strings "a b c")
+(re-seq #"[0-9]" "123456789")
 
 (defn prompt-move
   [board]
